@@ -25,6 +25,15 @@ Object.defineProperty(exports, 'AuthorizeStep', {
   }
 });
 
+var _storage = require('./storage');
+
+Object.defineProperty(exports, 'Storage', {
+  enumerable: true,
+  get: function get() {
+    return _storage.Storage;
+  }
+});
+
 var _appFetchHttpClientConfig = require('./app.fetch-httpClient.config');
 
 Object.defineProperty(exports, 'FetchConfig', {

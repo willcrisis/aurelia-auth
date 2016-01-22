@@ -1,5 +1,6 @@
 export {AuthService} from './authService';
 export {AuthorizeStep} from './authorizeStep';
+export {Storage} from './storage';
 import {BaseConfig} from './baseConfig';
 export {FetchConfig} from './app.fetch-httpClient.config';
 
