@@ -33,18 +33,10 @@ define(['exports', 'aurelia-framework', './authentication', 'aurelia-router'], f
           }
 
           if (auth.constructor == Array) {
-            if (!_this.auth.isAuthenticated() || !_this.auth.canAccess(auth, i.config.requiresAllRoles)) {
-              console.log("Cannot access! Doesn't have the required roles : " + auth);
-              return false;
-            }
+            return _this.auth.canAccess(auth, i.config.requiresAllRoles);
           } else {
-            if (auth) {
-              return _this.auth.isAuthenticated();
-            } else {
-              return !_this.auth.isAuthenticated();
-            }
+            return auth === _this.auth.isAuthenticated();
           }
-          return true;
         });
 
         if (!canAccess) {

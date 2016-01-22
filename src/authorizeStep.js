@@ -20,18 +20,10 @@ export class AuthorizeStep {
       }
 
       if (auth.constructor == Array) {
-        if (!this.auth.isAuthenticated() || !this.auth.canAccess(auth, i.config.requiresAllRoles)) {
-          console.log("Cannot access! Doesn't have the required roles : " + auth);
-          return false;
-        }
+        return this.auth.canAccess(auth, i.config.requiresAllRoles);
       } else {
-        if (auth) {
-          return this.auth.isAuthenticated();
-        } else {
-          return !this.auth.isAuthenticated();
-        }
+        return auth === this.auth.isAuthenticated();
       }
-      return true;
     });
 
     if (!canAccess) {

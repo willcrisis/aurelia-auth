@@ -163,13 +163,15 @@ define(['exports', 'aurelia-framework', './baseConfig', './storage', './authUtil
       key: 'canAccess',
       value: function canAccess(roles, requireAll) {
         if (requireAll) {
-          return containsAllRoles(roles);
+          return this.containsAllRoles(roles);
         } else {
           for (var i = 0; i < roles.length; i++) {
             if (this.containsRole(roles[i])) {
+              console.log('User have privileges.');
               return true;
             }
           }
+          console.log('User does not have privileges.');
           return false;
         }
       }
@@ -180,6 +182,7 @@ define(['exports', 'aurelia-framework', './baseConfig', './storage', './authUtil
 
         return new Promise(function (resolve) {
           _this.storage.remove(_this.tokenName);
+          _this.storage.remove(_this.config.responseRolesProp);
 
           if (_this.config.logoutRedirect && !redirect) {
             window.location.href = _this.config.logoutRedirect;

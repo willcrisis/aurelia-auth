@@ -139,13 +139,15 @@ export class Authentication {
 
   canAccess(roles, requireAll) {
     if (requireAll) {
-      return containsAllRoles(roles);
+      return this.containsAllRoles(roles);
     } else {
       for (var i = 0; i < roles.length; i++) {
         if (this.containsRole(roles[i])) {
+          console.log('User have privileges.');
           return true;
         }
       }
+      console.log('User does not have privileges.');
       return false;
     }
   }
@@ -153,6 +155,7 @@ export class Authentication {
   logout(redirect) {
     return new Promise(resolve => {
       this.storage.remove(this.tokenName);
+      this.storage.remove(this.config.responseRolesProp);
 
       if (this.config.logoutRedirect && !redirect) {
         window.location.href = this.config.logoutRedirect;
