@@ -27,17 +27,43 @@ System.register(['aurelia-framework', './authentication', 'aurelia-router'], fun
         _createClass(AuthorizeStep, [{
           key: 'run',
           value: function run(routingContext, next) {
+            var _this = this;
+
             var isLoggedIn = this.auth.isAuthenticated();
             var loginRoute = this.auth.getLoginRoute();
+            var deniedRoute = this.auth.getDeniedRoute();
 
-            if (routingContext.getAllInstructions().some(function (i) {
-              return i.config.auth;
-            })) {
-              if (!isLoggedIn) {
-                console.log("login route : " + loginRoute);
+            var canAccess = routingContext.getAllInstructions().some(function (i) {
+              var auth = i.config.auth;
+
+              if (auth == undefined) {
+                return true;
+              }
+
+              if (auth.constructor == Array) {
+                if (!_this.auth.isAuthenticated() || !_this.auth.canAccess(auth, i.config.requiresAllRoles)) {
+                  console.log("Cannot access! Doesn't have the required roles : " + auth);
+                  return false;
+                }
+              } else {
+                if (auth) {
+                  return _this.auth.isAuthenticated();
+                } else {
+                  return !_this.auth.isAuthenticated();
+                }
+              }
+              return true;
+            });
+
+            if (!canAccess) {
+              if (isLoggedIn) {
+                return next.cancel(new Redirect(deniedRoute));
+              } else {
                 return next.cancel(new Redirect(loginRoute));
               }
-            } else if (isLoggedIn && routingContext.getAllInstructions().some(function (i) {
+            }
+
+            if (isLoggedIn && routingContext.getAllInstructions().some(function (i) {
               return i.fragment;
             }) == loginRoute) {
               var loginRedirect = this.auth.getLoginRedirect();

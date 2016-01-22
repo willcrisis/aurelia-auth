@@ -33,6 +33,11 @@ System.register(['aurelia-framework', './baseConfig', './storage', './authUtils'
             return this.config.loginRoute;
           }
         }, {
+          key: 'getDeniedRoute',
+          value: function getDeniedRoute() {
+            return this.config.deniedRoute;
+          }
+        }, {
           key: 'getLoginRedirect',
           value: function getLoginRedirect() {
             return this.config.loginRedirect;
@@ -96,6 +101,11 @@ System.register(['aurelia-framework', './baseConfig', './storage', './authUtils'
 
             this.storage.set(tokenName, token);
 
+            var roles = response && response[this.config.responseRolesProp];
+            if (roles) {
+              this.storage.set('roles', roles.toString());
+            }
+
             if (this.config.loginRedirect && !redirect) {
               window.location.href = this.config.loginRedirect;
             } else if (redirect && authUtils.isString(redirect)) {
@@ -129,6 +139,44 @@ System.register(['aurelia-framework', './baseConfig', './storage', './authUtils'
             }
 
             return true;
+          }
+        }, {
+          key: 'getRoles',
+          value: function getRoles() {
+            var roles = this.storage.get('roles');
+            if (roles) {
+              return roles.split(',');
+            }
+            return [];
+          }
+        }, {
+          key: 'containsRole',
+          value: function containsRole(role) {
+            return this.getRoles().indexOf(role) > -1;
+          }
+        }, {
+          key: 'containsAllRoles',
+          value: function containsAllRoles(roles) {
+            for (var i = 0; i < roles.length; i++) {
+              if (!this.containsRole(roles[i])) {
+                return false;
+              }
+            }
+            return true;
+          }
+        }, {
+          key: 'canAccess',
+          value: function canAccess(roles, requireAll) {
+            if (requireAll) {
+              return containsAllRoles(roles);
+            } else {
+              for (var i = 0; i < roles.length; i++) {
+                if (this.containsRole(roles[i])) {
+                  return true;
+                }
+              }
+              return false;
+            }
           }
         }, {
           key: 'logout',

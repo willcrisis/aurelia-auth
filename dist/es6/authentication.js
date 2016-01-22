@@ -15,6 +15,10 @@ export class Authentication {
     return this.config.loginRoute;
   }
 
+  getDeniedRoute() {
+    return this.config.deniedRoute;
+  }
+
   getLoginRedirect() {
     return this.config.loginRedirect;
   }
@@ -72,6 +76,11 @@ export class Authentication {
 
     this.storage.set(tokenName, token);
 
+    var roles = response && response[this.config.responseRolesProp];
+    if (roles) {
+      this.storage.set('roles', roles.toString());
+    }
+
     if (this.config.loginRedirect && !redirect) {
       window.location.href = this.config.loginRedirect;
     } else if (redirect && authUtils.isString(redirect)) {
@@ -105,6 +114,40 @@ export class Authentication {
     }
 
     return true;
+  }
+
+  getRoles() {
+    var roles = this.storage.get('roles');
+    if (roles) {
+      return roles.split(',');
+    }
+    return [];
+  }
+
+  containsRole(role) {
+    return this.getRoles().indexOf(role) > -1;
+  }
+
+  containsAllRoles(roles) {
+    for (var i = 0; i < roles.length; i++) {
+      if (!this.containsRole(roles[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  canAccess(roles, requireAll) {
+    if (requireAll) {
+      return containsAllRoles(roles);
+    } else {
+      for (var i = 0; i < roles.length; i++) {
+        if (this.containsRole(roles[i])) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
   logout(redirect) {
