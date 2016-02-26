@@ -1,10 +1,12 @@
-import {inject} from 'aurelia-framework';
+import {inject} from 'aurelia-dependency-injection';
 import {HttpClient, json} from 'aurelia-fetch-client';
+import 'fetch';
 import {Authentication} from './authentication';
 import {BaseConfig} from './baseConfig';
 import {OAuth1} from './oAuth1';
 import {OAuth2} from './oAuth2';
 import authUtils from './authUtils';
+
 
 @inject(HttpClient,Authentication, OAuth1, OAuth2, BaseConfig)
 export class AuthService {
@@ -19,8 +21,7 @@ export class AuthService {
   getMe() {
     var profileUrl = this.auth.getProfileUrl();
     return this.http.fetch(profileUrl)
-      .then(status)
-      .then(toJson)
+      .then(authUtils.status)
       .then((response) => {
         return response
       });
@@ -51,8 +52,7 @@ export class AuthService {
       method: 'post',
       body: json(content)
     })
-      .then(status)
-      .then(toJson)
+      .then(authUtils.status)
       .then((response) => {
         if (this.config.loginOnSignup) {
           this.auth.setToken(response);
@@ -77,10 +77,10 @@ export class AuthService {
 
     return this.http.fetch(loginUrl, {
       method: 'post',
-      body: json(content)
+      headers: typeof(content)==='string' ? {'Content-Type': 'application/x-www-form-urlencoded'} : {},
+      body: typeof(content)==='string' ? content : json(content)
     })
-      .then(status)
-      .then(toJson)
+      .then(authUtils.status)
       .then((response) => {
         this.auth.setToken(response)
         return response
@@ -109,8 +109,7 @@ export class AuthService {
 
     if (this.config.unlinkMethod === 'get') {
       return this.http.fetch(unlinkUrl + provider)
-        .then(status)
-        .then(toJson)
+        .then(authUtils.status)
         .then((response) => {
           return response;
         });
@@ -119,8 +118,7 @@ export class AuthService {
         method: 'post',
         body: json(provider)
       })
-        .then(status)
-        .then(toJson)
+        .then(authUtils.status)
         .then((response) => {
           return response;
         });
@@ -128,14 +126,4 @@ export class AuthService {
   }
 }
 
-function status(response) {
-  if (response.status >= 200 && response.status < 300) {
-    return Promise.resolve(response)
-  } else {
-    return Promise.reject(new Error(response.statusText))
-  }
-}
 
-function toJson(response) {
-  return response.json()
-}
