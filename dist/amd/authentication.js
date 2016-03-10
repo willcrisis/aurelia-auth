@@ -63,7 +63,11 @@ define(['exports', 'aurelia-dependency-injection', './baseConfig', './storage', 
             value: function getPayload() {
 
                 var token = this.storage.get(this.tokenName);
-
+                return this.decomposeToken(token);
+            }
+        }, {
+            key: 'decomposeToken',
+            value: function decomposeToken(token) {
                 if (token && token.split('.').length === 3) {
                     var base64Url = token.split('.')[1];
                     var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -104,22 +108,9 @@ define(['exports', 'aurelia-dependency-injection', './baseConfig', './storage', 
                 }
 
                 var idToken = response && response[this.config.responseIdTokenProp];
-                var idTokenToStore = undefined;
 
                 if (idToken) {
-                    if (_authUtils2['default'].isObject(idToken) && _authUtils2['default'].isObject(idToken.data)) {
-                        response = idToken;
-                    } else if (_authUtils2['default'].isString(idToken)) {
-                        idTokenToStore = idToken;
-                    }
-                }
-
-                if (!idTokenToStore && response) {
-                    idTokenToStore = this.config.tokenRoot && response[this.config.tokenRoot] ? response[this.config.tokenRoot][this.config.idTokenName] : response[this.config.IdTokenName];
-                }
-
-                if (idTokenToStore) {
-                    this.storage.set(this.idTokenName, idTokenToStore);
+                    this.storage.set(this.idTokenName, idToken);
                 }
 
                 var roles = response && response[this.config.responseRolesProp];

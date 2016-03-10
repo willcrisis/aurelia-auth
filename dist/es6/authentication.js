@@ -20,10 +20,6 @@ export class Authentication {
         return this.initialUrl || this.config.loginRedirect;
     }
 
-    getDeniedRoute() {
-      return this.config.deniedRoute;
-    }
-
     getLoginUrl() {
         return this.config.baseUrl ? authUtils.joinUrl(this.config.baseUrl, this.config.loginUrl) : this.config.loginUrl;
     }
@@ -43,7 +39,10 @@ export class Authentication {
     getPayload() {
 
         let token = this.storage.get(this.tokenName);
+        return this.decomposeToken(token);
+    }
 
+    decomposeToken(token){
         if (token && token.split('.').length === 3) {
             let base64Url = token.split('.')[1];
             let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -62,9 +61,9 @@ export class Authentication {
 
     setToken(response, redirect) {
 
-
+         
         //access token handling
-
+              
             let accessToken = response && response[this.config.responseTokenProp];
             let tokenToStore;
 
@@ -83,46 +82,30 @@ export class Authentication {
             if (tokenToStore) {
                 this.storage.set(this.tokenName, tokenToStore);
             }
-
-
-
+            
 
         //id token handling
-
+         
             let idToken = response && response[this.config.responseIdTokenProp];
-            let idTokenToStore;
-
+            
             if (idToken) {
-                if (authUtils.isObject(idToken) && authUtils.isObject(idToken.data)) {
-                    response = idToken;
-                } else if (authUtils.isString(idToken)) {
-                    idTokenToStore = idToken;
-                }
+                    this.storage.set(this.idTokenName, idToken);
             }
 
-            if (!idTokenToStore && response) {
-                idTokenToStore = this.config.tokenRoot && response[this.config.tokenRoot] ? response[this.config.tokenRoot][this.config.idTokenName] : response[this.config.IdTokenName];
-            }
-
-            if (idTokenToStore) {
-              this.storage.set(this.idTokenName, idTokenToStore);
-            }
-
-            var roles = response && response[this.config.responseRolesProp];
-            if (roles) {
-              this.storage.set('roles', roles.toString());
-            }
-
-            if (this.config.loginRedirect && !redirect) {
-                window.location.href = this.getLoginRedirect();
-            } else if (redirect && authUtils.isString(redirect)) {
-                window.location.href = window.encodeURI(redirect);
-            }
+        
+        
+        if (this.config.loginRedirect && !redirect) {
+            window.location.href = this.getLoginRedirect();
+        } else if (redirect && authUtils.isString(redirect)) {
+            window.location.href = window.encodeURI(redirect);
+        }
     }
+
+    
+
 
     removeToken() {
         this.storage.remove(this.tokenName);
-        this.storage.remove('roles');
     }
 
     isAuthenticated() {
@@ -131,7 +114,6 @@ export class Authentication {
 
         // There's no token, so user is not authenticated.
         if (!token) {
-            this.removeToken();
             return false;
         }
 
@@ -146,61 +128,19 @@ export class Authentication {
             let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
             exp = JSON.parse(window.atob(base64)).exp;
         } catch (error) {
-            this.removeToken();
             return false;
         }
 
         if (exp) {
-            let result = Math.round(new Date().getTime() / 1000) <= exp;
-            if (!result) {
-              this.removeToken();
-            }
-            return result;
+            return Math.round(new Date().getTime() / 1000) <= exp;
         }
 
         return true;
     }
 
-    getRoles() {
-      var roles = this.storage.get('roles');
-      if (roles) {
-        return roles.split(',');
-      }
-      return [];
-    }
-
-    containsRole(role) {
-      return this.getRoles().indexOf(role) > -1;
-    }
-
-    containsAllRoles(roles) {
-      for (var i = 0; i < roles.length; i++) {
-        if (!this.containsRole(roles[i])) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    canAccess(roles, requireAll) {
-      if (requireAll) {
-        return this.containsAllRoles(roles);
-      } else {
-        for (var i = 0; i < roles.length; i++) {
-          if (this.containsRole(roles[i])) {
-            console.log('User have privileges.');
-            return true;
-          }
-        }
-        console.log('User does not have privileges.');
-        return false;
-      }
-    }
-
     logout(redirect) {
         return new Promise(resolve => {
             this.storage.remove(this.tokenName);
-            this.storage.remove(this.config.responseRolesProp);
 
             if (this.config.logoutRedirect && !redirect) {
                 window.location.href = this.config.logoutRedirect;

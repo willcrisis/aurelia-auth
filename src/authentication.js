@@ -43,7 +43,10 @@ export class Authentication {
     getPayload() {
 
         let token = this.storage.get(this.tokenName);
+        return this.decomposeToken(token);
+    }
 
+    decomposeToken(token){
         if (token && token.split('.').length === 3) {
             let base64Url = token.split('.')[1];
             let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -90,22 +93,9 @@ export class Authentication {
         //id token handling
 
             let idToken = response && response[this.config.responseIdTokenProp];
-            let idTokenToStore;
 
             if (idToken) {
-                if (authUtils.isObject(idToken) && authUtils.isObject(idToken.data)) {
-                    response = idToken;
-                } else if (authUtils.isString(idToken)) {
-                    idTokenToStore = idToken;
-                }
-            }
-
-            if (!idTokenToStore && response) {
-                idTokenToStore = this.config.tokenRoot && response[this.config.tokenRoot] ? response[this.config.tokenRoot][this.config.idTokenName] : response[this.config.IdTokenName];
-            }
-
-            if (idTokenToStore) {
-              this.storage.set(this.idTokenName, idTokenToStore);
+                    this.storage.set(this.idTokenName, idToken);
             }
 
             var roles = response && response[this.config.responseRolesProp];
@@ -119,6 +109,9 @@ export class Authentication {
                 window.location.href = window.encodeURI(redirect);
             }
     }
+
+
+
 
     removeToken() {
         this.storage.remove(this.tokenName);
