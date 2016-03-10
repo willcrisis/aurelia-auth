@@ -122,6 +122,7 @@ export class Authentication {
 
     removeToken() {
         this.storage.remove(this.tokenName);
+        this.storage.remove('roles');
     }
 
     isAuthenticated() {
@@ -130,6 +131,7 @@ export class Authentication {
 
         // There's no token, so user is not authenticated.
         if (!token) {
+            this.removeToken();
             return false;
         }
 
@@ -144,11 +146,16 @@ export class Authentication {
             let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
             exp = JSON.parse(window.atob(base64)).exp;
         } catch (error) {
+            this.removeToken();
             return false;
         }
 
         if (exp) {
-            return Math.round(new Date().getTime() / 1000) <= exp;
+            let result = Math.round(new Date().getTime() / 1000) <= exp;
+            if (!result) {
+              this.removeToken();
+            }
+            return result;
         }
 
         return true;

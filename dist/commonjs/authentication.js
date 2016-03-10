@@ -144,6 +144,7 @@ var Authentication = (function () {
         key: 'removeToken',
         value: function removeToken() {
             this.storage.remove(this.tokenName);
+            this.storage.remove('roles');
         }
     }, {
         key: 'isAuthenticated',
@@ -152,6 +153,7 @@ var Authentication = (function () {
             var token = this.storage.get(this.tokenName);
 
             if (!token) {
+                this.removeToken();
                 return false;
             }
 
@@ -165,11 +167,16 @@ var Authentication = (function () {
                 var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
                 exp = JSON.parse(window.atob(base64)).exp;
             } catch (error) {
+                this.removeToken();
                 return false;
             }
 
             if (exp) {
-                return Math.round(new Date().getTime() / 1000) <= exp;
+                var result = Math.round(new Date().getTime() / 1000) <= exp;
+                if (!result) {
+                    this.removeToken();
+                }
+                return result;
             }
 
             return true;

@@ -38,7 +38,7 @@ var AuthorizeStep = (function () {
         }
 
         if (auth.constructor == Array) {
-          return _this.auth.canAccess(auth, i.config.requiresAllRoles);
+          return _this.auth.isAuthenticated() && _this.auth.canAccess(auth, i.config.requiresAllRoles);
         } else {
           return auth === _this.auth.isAuthenticated();
         }

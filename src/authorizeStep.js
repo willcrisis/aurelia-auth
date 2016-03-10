@@ -20,7 +20,7 @@ export class AuthorizeStep {
       }
 
       if (auth.constructor == Array) {
-        return this.auth.canAccess(auth, i.config.requiresAllRoles);
+        return this.auth.isAuthenticated() && this.auth.canAccess(auth, i.config.requiresAllRoles);
       } else {
         return auth === this.auth.isAuthenticated();
       }

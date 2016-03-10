@@ -15,7 +15,7 @@ export class AuthFilterValueConverter {
         return true;
       }
       if (auth.constructor == Array) {
-        return this.auth.canAccess(auth, r.config.requiresAllRoles);
+        return this.auth.isAuthenticated() && this.auth.canAccess(auth, r.config.requiresAllRoles);
       } else {
         return auth === isAuthenticated
       }

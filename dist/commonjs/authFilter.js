@@ -30,7 +30,7 @@ var AuthFilterValueConverter = (function () {
           return true;
         }
         if (auth.constructor == Array) {
-          return _this.auth.canAccess(auth, r.config.requiresAllRoles);
+          return _this.auth.isAuthenticated() && _this.auth.canAccess(auth, r.config.requiresAllRoles);
         } else {
           return auth === isAuthenticated;
         }
